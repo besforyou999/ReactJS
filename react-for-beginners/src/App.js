@@ -2,64 +2,35 @@ import { useEffect, useState } from "react";
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  const [dollar, setDollar] = useState(0);
-  const [bitCoinCost, setbitCoinCost] = useState(0);
-  const [bitCoinNum, setbitCoinNum] = useState(0);
-
+  const [movies, setMovies] = useState([]);
+  const getMovies = async() => {
+    const response = await fetch(
+      `https://yts.mx/api/v2/list_movies.json?minimum_rating=7.5&sort_by=year`
+    );
+    const json = await response.json();
+    setMovies(json.data.movies);
+    setLoading(false);
+  }
   useEffect(() => {
-    fetch("https://api.coinpaprika.com/v1/tickers")
-      .then((response) => response.json())
-      .then((json) => {
-        setCoins(json);
-        setLoading(false);
-        setbitCoinCost(json[0].quotes.USD.price);
-      });
-      
+    getMovies();
   }, []);
 
-  const handleInput = (event) => {
-    setDollar(event.target.value);
-    if (bitCoinCost !== 0) {
-      setbitCoinNum( Number(event.target.value) / Number(bitCoinCost));
-    } else {
-      setbitCoinNum(null);
-    }
-  } 
 
-  const onChange = (event) => { 
-    let tokens = event.target.value.split(' ');
-    setbitCoinCost(Number(tokens[3]));
-    if (bitCoinCost != 0) {
-      setbitCoinNum( Number(dollar) / Number(tokens[3]));
-    } else {
-      setbitCoinNum(null);   
-    }
-  }
-  
-  return (
-    <div>
-      <h1>Coins! {loading ? "" : `(${coins.length})`}</h1>
-      {loading ? <strong>Loading...</strong> : <select onChange={onChange}>
-        {coins.map((coin, index) => ( 
-          <option key={index}>
-            {coin.name} ({coin.symbol}) : {coin.quotes.USD.price} USD
-          </option>
+  return <div>
+    {loading ? <h1>Loading...</h1> : 
+      <div>
+        {movies.map((movie) => ( 
+          <div key={movie.id}>
+            <img src={movie.medium_cover_image} />
+            <h3>{movie.title}</h3>
+            <p>{movie.summary}</p>
+            <ul>
+              {movie.genres.map(g => <li key={g}> {g} å</li>)}
+            </ul>
+          </div>
         ))}
-      </select>}
-      
-      <hr></hr>
-      <input 
-        onChange={handleInput}
-        value={dollar} 
-        type="text"/>
-      
-      
-      <h3>Dollar : {dollar} $</h3>
-      <h3>To bitcoin : {bitCoinNum}</h3>
-
-    </div>
-  )
+      </div>}
+  </div>
 }
 
 export default App;
